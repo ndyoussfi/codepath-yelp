@@ -16,6 +16,13 @@ class Business: NSObject {
     let distance: String?
     let ratingImageURL: NSURL?
     let reviewCount: NSNumber?
+    let coordinate: (Double?, Double?)
+    let isClosed: Bool?
+    let menuProvider: String?
+    let crossStreets: String?
+    let id: String?
+    
+    var offset: Int?
     
     init(dictionary: NSDictionary) {
         name = dictionary["name"] as? String
@@ -73,22 +80,29 @@ class Business: NSObject {
         }
         
         reviewCount = dictionary["review_count"] as? NSNumber
+        isClosed = dictionary.valueForKeyPath("is_closed") as? Bool
+        menuProvider = dictionary.valueForKeyPath("menu_provider") as? String
+        crossStreets = dictionary.valueForKeyPath("location.cross_streets") as? String
+        id = dictionary.valueForKeyPath("id") as? String
+        
+        //save latitude and longitude
+        let latitude = dictionary.valueForKeyPath("location.coordinate.latitude")
+        let longitude = dictionary.valueForKeyPath("location.coordinate.longitude")
+        coordinate = (latitude as? Double, longitude as? Double)
     }
     
     class func businesses(array array: [NSDictionary]) -> [Business] {
-        var businesses = [Business]()
-        for dictionary in array {
-            let business = Business(dictionary: dictionary)
-            businesses.append(business)
+
+        return array.map{ Business(dictionary: $0)
         }
-        return businesses
+
     }
     
     class func searchWithTerm(term: String, completion: ([Business]!, NSError!) -> Void) {
         YelpClient.sharedInstance.searchWithTerm(term, completion: completion)
     }
     
-    class func searchWithTerm(term: String, sort: YelpSortMode?, categories: [String]?, deals: Bool?, completion: ([Business]!, NSError!) -> Void) -> Void {
-        YelpClient.sharedInstance.searchWithTerm(term, sort: sort, categories: categories, deals: deals, completion: completion)
+    class func searchWithTerm(term: String, offset: Int? = 20, sort: YelpSortMode?, categories: [String]?, deals: Bool?, completion: ([Business]!, NSError!) -> Void) -> Void {
+        YelpClient.sharedInstance.searchWithTerm(term, offset: offset!, sort: sort, categories: categories, deals: deals, completion: completion)
     }
 }
